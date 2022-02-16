@@ -6,7 +6,6 @@
 .artboard,
 .header {
 	border-radius: 16px;
-	background-color: hsl(var(--b1) / var(--tw-bg-opacity));
 }
 
 @media (max-width: 960px) {
@@ -16,6 +15,6 @@
 }
 
 .item {
-	background-color: hsl(var(--b2, var(--b1)) / var(--tw-bg-opacity));
+	background-color: #2a2e37;
 	border-radius: 16px;
 }
