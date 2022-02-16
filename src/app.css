@@ -2,3 +2,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.artboard,
+.header {
+	border-radius: 16px;
+	background-color: hsl(var(--b1) / var(--tw-bg-opacity));
+}
+
+@media (max-width: 960px) {
+	.artboard {
+		border-radius: 0px;
+	}
+}
+
+.item {
+	background-color: hsl(var(--b2, var(--b1)) / var(--tw-bg-opacity));
+	border-radius: 16px;
+}
