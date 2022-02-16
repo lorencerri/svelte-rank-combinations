@@ -1,21 +1,63 @@
 <script>
 	import { nanoid } from 'nanoid';
-	import { writable } from 'svelte/store';
+	import combinations from 'combinations';
+	import { get, writable } from 'svelte/store';
 	import { browser } from '$app/env';
 
 	let state = true;
 	const options = writable({});
+	const min = writable(2);
+	const max = writable(2);
 
 	const addOption = () => {
 		options.update((prev) => ({ ...prev, [nanoid(7)]: '' }));
 	};
 
+	const combo = function (a, min, max) {
+		min = min || 1;
+		max = max < a.length ? max : a.length;
+
+		let fn = function (n, src, got, all) {
+			if (n == 0) {
+				if (got.length > 0) {
+					all[all.length] = got;
+				}
+				return;
+			}
+			for (let j = 0; j < src.length; j++) {
+				fn(n - 1, src.slice(j + 1), got.concat([src[j]]), all);
+			}
+			return;
+		};
+		let all = [];
+		for (let i = min; i < a.length; i++) {
+			fn(i, a, [], all);
+		}
+		if (a.length == max) all.push(a);
+		for (let i = 0; i < all.length; i++) {
+			if (all[i].length > max) delete all[i];
+		}
+		return all.filter(Boolean);
+	};
+
 	if (browser) {
-		const fetched = JSON.parse(localStorage.getItem('options'));
-		if (fetched) options.set(fetched);
+		const fetchedData = JSON.parse(localStorage.getItem('options'));
+		if (fetchedData) options.set(fetchedData);
+		const fetchedMin = JSON.parse(localStorage.getItem('min'));
+		if (fetchedMin) min.set(fetchedMin);
+		const fetchedMax = JSON.parse(localStorage.getItem('max'));
+		if (fetchedMax) max.set(fetchedMax);
 
 		options.subscribe((data) => {
 			localStorage.setItem('options', JSON.stringify(data));
+		});
+
+		min.subscribe((data) => {
+			localStorage.setItem('min', data);
+		});
+
+		max.subscribe((data) => {
+			localStorage.setItem('max', data);
 		});
 	}
 </script>
@@ -40,10 +82,10 @@
 		<div class="text-center pt-1">
 			{#if state}
 				<div class="grid grid-cols-1 pl-8 pr-8">
-					{#each Object.entries($options) as entry}
+					{#each combo(Object.values($options), $min, $max) as data}
 						<div class="navbar item shadow-lg mb-1 pl-4 pr-4">
 							<div class="navbar-start">
-								<span>{entry[1]}</span>
+								<span>{data.join(' & ')}</span>
 							</div>
 							<div class="navbar-end">
 								<button class="btn btn-sm btn-ghost p-0">
@@ -124,9 +166,22 @@
 						</div>
 					{/each}
 					<div class="col-span-6">
-						<button class="btn btn-success w-full max-w-xs" on:click={addOption}>
+						<button class="btn btn-success w-full max-w-xs mb-2" on:click={addOption}>
 							+ New Option
 						</button>
+					</div>
+					<div class="col-span-6 mb-2">Unique Combination Lengths</div>
+					<div class="col-span-3">
+						<label class="input-group input-group-sm pr-1">
+							<span>Min</span>
+							<input type="text" bind:value={$min} class="input input-bordered input-sm w-full" />
+						</label>
+					</div>
+					<div class="col-span-3">
+						<label class="input-group input-group-sm pl-1">
+							<span>Max</span>
+							<input type="text" bind:value={$max} class="input input-bordered input-sm w-full" />
+						</label>
 					</div>
 				</div>
 			{/if}
